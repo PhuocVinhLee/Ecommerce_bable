@@ -1,38 +1,48 @@
-.App {
-  text-align: center;
-}
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.show_menu{
+  display: block !important;
+  background-color: #00000084 !important
 }
+.show_shop_by {
+  display: block !important;
+}
+@media  screen and (min-width: 768px) {
+  .sticky_header{
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+    position: sticky;
+    top :0px;
+    left: 0px;
+    z-index: 99;
   }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+  
+    /* .menu{
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: #00000084;
+      z-index: 100000;
+      display: none;
+      display: block;
+      color: aqua;
+      border: red 1px solid;
+    } */
+  
+    /* .menu ul{
+      width: 15rem;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      right: 0;
+      z-index: 200;
+      background: #fff;
+      flex-direction:  column;
+      line-height: 30px;
+      justify-content: center;
+      align-items: center;
+  
+    } */
+ 
+    
   }
-  to {
-    transform: rotate(360deg);
-  }
-}
