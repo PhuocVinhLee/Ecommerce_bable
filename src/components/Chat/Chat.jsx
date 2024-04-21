@@ -126,7 +126,7 @@ function Chat() {
                           handdleAddMessage(item.id);
                         }}
                         key={index}
-                        class="relative min-w-[45px] "
+                        class="relative min-w-[50px] border rounded-full "
                       >
                         <span class="absolute text-green-500 right-0 bottom-0">
                           <input className=" hidden" type="text" />
@@ -139,11 +139,13 @@ function Chat() {
                             ></circle>
                           </svg>
                         </span>
+                        {/* <div>{item?.imageURL}</div> */}
+                        {/* <img src={item?.imageURL}/> */}
                         <img
-                          src={item?.imageURL}
-                          // src="https://images.unsplash.com/photo-1549078642-b2ba4bda0cdb?ixlib=rb-1.2.1&amp;ixid=eyJhcHBfaWQiOjEyMDd9&amp;auto=format&amp;fit=facearea&amp;facepad=3&amp;w=144&amp;h=144"
-                          alt={item.name}
-                          class=" w-16  h-16 rounded-full"
+                           src={item?.imageURL}
+                    
+                          alt="none"
+                          class=" min-w-16  min-h-16 rounded-full"
                         />
                       </div>
                     )}
@@ -167,7 +169,7 @@ function Chat() {
                         {" "}
                         <IoMdArrowRoundBack />
                       </div>
-                      <div class="relative">
+                      <div class="relative border rounded-full">
                         <span class="absolute text-green-500 right-0 bottom-0">
                           <svg width="20" height="20">
                             <circle
@@ -280,9 +282,9 @@ function Chat() {
                                 </div>
                               </div>
                               <img
-                               src={user_from_db.imageURL}
+                               src={user_from_db?.imageURL}
                                 alt="My profile"
-                                class="w-6 h-6 rounded-full order-2"
+                                class="w-6 h-6 rounded-full border order-2"
                               />
                             </div>
                           </div>
@@ -304,7 +306,7 @@ function Chat() {
                               <img
                                 src={userChatting?.imageURL}
                                 alt={userChatting?.name}
-                                class="w-6 h-6 rounded-full order-1"
+                                class="w-6 h-6 rounded-full order-1 border"
                               />
                             </div>
                           </div>
@@ -432,7 +434,7 @@ function Chat() {
           ) : (
             <div className=" overflow-auto p-3 ">
               {AllMessageFromDb?.map((message) => {
-                return (
+                return ( message.message.length != 0 && 
                   <div
                     onClick={() => {
                       setUserChatting({
@@ -447,14 +449,15 @@ function Chat() {
                   >
                     <div class="relative flex items-center space-x-4">
                       <div className="flex  flex-col items-center">
-                        <div class="relative">
+                        <div class="relative border rounded-full">
+                        <div>{console.log(user)}</div>
                           <img
                             src={
                               user?.find((user) => {
                                 return user.id == message.id;
                               })?.imageURL
                             }
-                            alt="sc"
+                            alt="none"
                             class="w-12 sm:w-12 h-12 sm:h-12 rounded-full"
                           />
                         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import myContext from "./myContext";
 import uuid from "react-uuid";
-
+import moment from "moment";
 import { fireDB } from "../../fireabase/FirebaseConfig";
 import { getAuth } from "firebase/auth";
 import {
@@ -40,8 +40,7 @@ function MyState(props) {
     title: "test10000",
     price: "2000",
     inventory_quantity: 20,
-    imageUrl:
-      "https://raw.githubusercontent.com/react-icons/react-icons/master/react-icons.svg",
+    imageUrl: [],
     category: null,
     description: "vuejs111",
     quantity_sold: 0,
@@ -51,7 +50,7 @@ function MyState(props) {
       day: "2-digit",
       year: "numeric",
     }),
-  
+
     selling_strategy: 0,
     start_number: 0,
   };
@@ -151,7 +150,7 @@ function MyState(props) {
     console.log(" da update message");
   };
 
-  const [AllMessageFromDb, setAllMessageFromDb] = useState([])
+  const [AllMessageFromDb, setAllMessageFromDb] = useState([]);
   const getAllMesaageForAdmin = async () => {
     setLoading(true);
     try {
@@ -163,7 +162,7 @@ function MyState(props) {
         });
 
         setLoading(false);
-       setAllMessageFromDb(messagersArray)
+        setAllMessageFromDb(messagersArray);
       });
       return () => data;
     } catch (error) {
@@ -191,13 +190,13 @@ function MyState(props) {
   };
 
   const addProduct = async (products) => {
-   const products_local = {...product_initState, ...products}
+    const products_local = { ...product_initState, ...products };
     const productRef = collection(fireDB, "products");
     setLoading(true);
 
     try {
-      console.log(products_local)
-     const respon = await addDoc(productRef, products_local);
+      console.log(products_local);
+      const respon = await addDoc(productRef, products_local);
       toast.success("Product Add successfully");
 
       getProductData();
@@ -220,12 +219,11 @@ function MyState(props) {
   const updateProduct = async (product) => {
     setLoading(true);
     try {
-     
       await updateDoc(doc(fireDB, "products", product.id), product);
       toast.success("Product Updated successfully");
       getProductData();
       setLoading(false);
-     
+
       return true;
     } catch (error) {
       setLoading(false);
@@ -297,22 +295,34 @@ function MyState(props) {
   const getProductData = async () => {
     setLoading(true);
     try {
-      const q = query(
-        collection(fireDB, "products"),
-        orderBy("time")
-        // limit(5)
-      );
-      const data = onSnapshot(q, (QuerySnapshot) => {
-        let productsArray = [];
-        QuerySnapshot.forEach((doc) => {
-          productsArray.push({ ...doc.data(), id: doc.id });
-        });
-        setProduct(productsArray);
-        setLoading(false);
-        console.table(productsArray);
+      // const q = query(
+      //   collection(fireDB, "products"),
+      //   // orderBy("id")
+      //   // limit(5)
+      // );
+      const result = await getDocs(collection(fireDB, "products"));
+      let productsArray = [];
+      result.forEach((doc) => {
+        productsArray.push({ ...doc.data(), id: doc.id });
       });
 
-      return () => data;
+      const productsSort = productsArray?.toSorted((a, b) => {
+        console.log(
+          Number(a?.time.seconds) +
+            Number(a?.time.nanoseconds) -
+            (Number(b?.time.seconds) + Number(b?.time.nanoseconds))
+        );
+        let c = Number(a?.time.seconds);
+        let d = Number(b?.time.seconds);
+        return c > d ? -1 : c < d ? 1 : 0;
+      });
+
+      console.table(productsSort);
+      setProduct(productsSort);
+
+      setLoading(false);
+
+      return productsSort;
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -325,19 +335,17 @@ function MyState(props) {
   };
   const [category, setCategory] = useState(category_initState);
   const addCategory = async (category) => {
-   
-
     try {
-      const caterogy_local = {...category_initState, ...category}
+      const caterogy_local = { ...category_initState, ...category };
       const categoryRef = collection(fireDB, "categorys");
-      console.log(caterogy_local)
+      console.log(caterogy_local);
       setLoading(true);
       const respon = await addDoc(categoryRef, caterogy_local);
       toast.success("Category Add successfully");
       getCategorysData();
       //closeModal();
       setLoading(false);
-      
+
       return true;
     } catch (error) {
       console.log(error);
@@ -359,7 +367,8 @@ function MyState(props) {
 
         catory = { ...docSnapshot.data(), id: docSnapshot.id };
       }
-    return catory;
+      setLoading(false);
+      return catory;
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -374,7 +383,7 @@ function MyState(props) {
 
       toast.success("Category Updated successfully");
       getCategorysData();
-    
+
       setLoading(false);
       return true;
     } catch (error) {
@@ -412,7 +421,6 @@ function MyState(props) {
       });
       setLoading(false);
       setCategorys(categorysArray);
-     
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -429,8 +437,17 @@ function MyState(props) {
         ordersArray.push({ ...doc.data(), id: doc.id });
         setLoading(false);
       });
-      setOrders(ordersArray);
-      console.log(ordersArray);
+      
+      const ordersArraySorted = ordersArray.toSorted((a, b) => {
+        
+        const c = moment(a?.date, "hh:mm:ss YYYY/M/DD a");
+        const d = moment(b?.date, "hh:mm:ss YYYY/M/DD a");
+       
+        console.log(c)
+        return c > d ? -1 : c < d ? 1 : 0;
+      });
+      setOrders(ordersArraySorted);
+     
       setLoading(false);
     } catch (error) {
       console.log(error);
@@ -467,7 +484,15 @@ function MyState(props) {
         // doc.data() is never undefined for query doc snapshots
         order.push({ ...doc.data(), id: doc.id });
       });
-      setOrder(order);
+      const ordersArraySorted = order.toSorted((a, b) => {
+        
+        const c = moment(a?.date, "hh:mm:ss YYYY/M/DD a");
+        const d = moment(b?.date, "hh:mm:ss YYYY/M/DD a");
+       
+      
+        return c > d ? -1 : c < d ? 1 : 0;
+      });
+      setOrder(ordersArraySorted);
       setLoading(false);
       console.table(order);
     } catch (error) {
@@ -487,7 +512,7 @@ function MyState(props) {
 
         order = { ...docSnapshot.data(), id: docSnapshot.id };
       }
-
+      setLoading(false);
       return order;
     } catch (error) {
       console.log(error);
@@ -567,15 +592,15 @@ function MyState(props) {
     getCategorysData();
     // getOrderData();
     getUserData();
-    if(user_infor?.uid){
+    if (user_infor?.uid) {
       find_user_from_db(user_infor?.uid);
-     }
+    }
   }, []);
   useEffect(() => {
-   if(user_infor?.uid){
-    find_user_from_db(user_infor?.uid);
-   }
-   console.log("reload ne ba")
+    if (user_infor?.uid) {
+      find_user_from_db(user_infor?.uid);
+    }
+    console.log("reload ne ba");
   }, [user_infor]);
 
   const [searchkey, setSearchkey] = useState("");

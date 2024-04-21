@@ -16,8 +16,58 @@ import { Timestamp } from "firebase/firestore";
 import { Link } from "react-router-dom";
 import ProgressBar from "@ramonak/react-progress-bar";
 
+import Slider from "react-slick";
 
+import CustomInput from "./CustomInput";
+import CustomInputImage from "./CustomInputImage";
+import CustomTextarea from "./CustomTextarea";
+import { advancedSchema } from "./schemas";
+import { Form, Formik } from "formik";
+
+import {
+  ref,
+  uploadBytes,
+  getStorage,
+  listAll,
+  getDownloadURL,
+} from "firebase/storage";
+import uuid from "react-uuid";
+import { storage } from "../../fireabase/FirebaseConfig";
+import Loader from "../../components/loader/Loader";
+
+function SampleNextArrow(props) {
+  const { className, style, onClick } = props;
+  return (
+    <div
+      className={className}
+      style={{ ...style, display: "none" }}
+      onClick={onClick}
+    />
+  );
+}
+
+function SamplePrevArrow(props) {
+  const { className, style, onClick } = props;
+  return (
+    <div
+      className={className}
+      style={{ ...style, display: "none" }}
+      onClick={onClick}
+    />
+  );
+}
 function Reviews() {
+  const settings = {
+    dots: true,
+    infinite: true,
+    autoplay: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    nextArrow: <SampleNextArrow />,
+    prevArrow: <SamplePrevArrow />,
+  };
+
   const context = useContext(myContext);
   const {
     loading,
@@ -53,8 +103,7 @@ function Reviews() {
   };
 
   const arr_start = useMemo(() => {
-    
-   return caculater_start();
+    return caculater_start();
   }, [reviews]);
 
   const [products, setProducts] = useState("");
@@ -76,7 +125,6 @@ function Reviews() {
   };
 
   useEffect(() => {
-   
     getProductData();
     getReviewDate(params.id);
   }, []);
@@ -84,21 +132,13 @@ function Reviews() {
     // id_product: null,
     // uid: null,
     start_number: 5,
-    comment: "",
-    imaUrlComemnt: "",
+    comment:
+      "For instance, I had a problem because the index.html file pointed to and that's is correct if we release the application in the root folder, but if you have various static developments in the same machine using the same Apache Server you have a problem.",
+    imaUrlComemnt: [],
     // time: Timestamp.now(),
   });
 
-  const handleAddreview = async () => {
-    const review_local = {
-      ...review,
-      uid: user_from_db?.id,
-      imaUrlUser: user_from_db?.imageURL,
-      nameUser: user_from_db?.name,
-      time: Timestamp.now(),
-      idProduct: params?.id,
-    };
-
+  const handleAddreview = async (review_local) => {
     await addReview(review_local);
     const order = await get_OneOrdertData(params?.id_order);
     const cartItems = order?.cartItems.map((item) => {
@@ -138,7 +178,7 @@ function Reviews() {
   const handdleSetShowReview = async () => {
     const order = await get_OneOrdertData(params?.id_order);
     const find_one_order = order.cartItems.find((product) => {
-      return product.id == params?.id;
+      return product.id == products?.id;
     });
 
     if (order?.status != "completed") {
@@ -148,23 +188,62 @@ function Reviews() {
     }
     setshowAddReview(!showAddReview);
   };
+
+  const onSubmit = async (values, actions) => {
+    try {
+      setLoading(true);
+      const arr_url = [];
+
+      for (const image of values.imaUrlComemnt) {
+        const imaRef = ref(storage, `reviews/${uuid()}`);
+        const spaceRef = await uploadBytes(imaRef, image);
+        const url = await getDownloadURL(spaceRef.ref);
+        arr_url.push(url);
+      }
+
+      const review_local = {
+        ...values,
+        imaUrlComemnt: arr_url,
+        uid: user_from_db?.id,
+        imaUrlUser: user_from_db?.imageURL,
+        nameUser: user_from_db?.name,
+        time: Timestamp.now(),
+        idProduct: params?.id,
+      };
+
+      await handleAddreview(review_local);
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+    }
+  };
+
   const [showAddReview, setshowAddReview] = useState(false);
   useEffect(() => {
     console.log(review);
   }, [review]);
   return (
     <Layout>
+      {loading && <Loader />}
       {products && (
         <div>
           {" "}
           <section className=" border-b-2">
             <div className="flex">
               <div className="w-1/3 flex flex-col justify-start p-3">
-                <img
-                  className=" bg-slate-400 mt-0 w-[400px] h-[400px]"
-                  src={products.imageUrl}
-                  alt=""
-                />
+                <div className="mb-10">
+                  <Slider {...settings} className=" border  ">
+                    {products?.imageUrl.map((img, index) => {
+                      return (
+                        <img
+                          src={img}
+                          alt=""
+                          className="   bg-slate-400 mt-0 w-[400px] h-[400px] block mx-auto transform -translate-y-19 group-hover:scale-105 duration-300 drop-shadow-md"
+                        />
+                      );
+                    })}
+                  </Slider>
+                </div>
                 <div className="flex gap-1 ">
                   <div className="font-bold">Name:</div>
                   <div> {products.title}</div>
@@ -178,60 +257,113 @@ function Reviews() {
                   <div>{products.description}</div>
                 </div>
               </div>
-              <div>
-            
-              </div>
-              <div className="w-2/3 flex flex-col  justify-center p-3">
+              <div></div>
+
+              <div className="w-2/3 flex flex-col  justify-start p-3">
                 <div className="flex items-center gap-3 ">
                   {" "}
                   1 <FaStar size={20} className=" text-yellow-400" />
                   <div className="w-full flex items-center justify-center">
                     <div class=" w-full rounded-full">
-                    <ProgressBar customLabel={" "}  completed={parseFloat((arr_start[0]/reviews?.length *100) ? (arr_start[0]/reviews?.length *100) : 0)} />
+                      <ProgressBar
+                        customLabel={" "}
+                        completed={parseFloat(
+                          (arr_start[0] / reviews?.length) * 100
+                            ? (arr_start[0] / reviews?.length) * 100
+                            : 0
+                        )}
+                      />
                     </div>
                   </div>
-                  {parseFloat((arr_start[0]/reviews?.length *100) ? (arr_start[0]/reviews?.length *100) : 0).toFixed(2)  +"%"}
-                  
+                  {parseFloat(
+                    (arr_start[0] / reviews?.length) * 100
+                      ? (arr_start[0] / reviews?.length) * 100
+                      : 0
+                  ).toFixed(2) + "%"}
                 </div>
                 <div className="flex items-center gap-3 ">
                   {" "}
                   2 <FaStar size={20} className=" text-yellow-400" />
                   <div className="w-full flex items-center justify-center">
                     <div class=" w-full  rounded-full ">
-                    <ProgressBar customLabel={" "}  completed={parseFloat((arr_start[1]/reviews?.length *100) ? (arr_start[1]/reviews?.length *100) : 0)} />
+                      <ProgressBar
+                        customLabel={" "}
+                        completed={parseFloat(
+                          (arr_start[1] / reviews?.length) * 100
+                            ? (arr_start[1] / reviews?.length) * 100
+                            : 0
+                        )}
+                      />
                     </div>
                   </div>
-                  {parseFloat((arr_start[1]/reviews?.length *100) ? (arr_start[1]/reviews?.length *100) : 0).toFixed(2)  +"%"}
+                  {parseFloat(
+                    (arr_start[1] / reviews?.length) * 100
+                      ? (arr_start[1] / reviews?.length) * 100
+                      : 0
+                  ).toFixed(2) + "%"}
                 </div>
                 <div className="flex items-center gap-3 ">
                   {" "}
                   3 <FaStar size={20} className=" text-yellow-400" />
                   <div className="w-full flex items-center justify-center">
-                  <div class=" w-full  rounded-full ">
-                    <ProgressBar customLabel={" "}  completed={parseFloat((arr_start[2]/reviews?.length *100) ? (arr_start[2]/reviews?.length *100) : 0).toFixed(2)} />
+                    <div class=" w-full  rounded-full ">
+                      <ProgressBar
+                        customLabel={" "}
+                        completed={parseFloat(
+                          (arr_start[2] / reviews?.length) * 100
+                            ? (arr_start[2] / reviews?.length) * 100
+                            : 0
+                        ).toFixed(2)}
+                      />
                     </div>
                   </div>
-                  {parseFloat((arr_start[2]/reviews?.length *100) ? (arr_start[2]/reviews?.length *100) : 0).toFixed(2)  +"%"}
+                  {parseFloat(
+                    (arr_start[2] / reviews?.length) * 100
+                      ? (arr_start[2] / reviews?.length) * 100
+                      : 0
+                  ).toFixed(2) + "%"}
                 </div>
                 <div className="flex items-center gap-3 ">
                   {" "}
                   4 <FaStar size={20} className=" text-yellow-400" />
                   <div className="w-full flex items-center justify-center">
-                  <div class=" w-full  rounded-full ">
-                    <ProgressBar customLabel={" "} completed={parseFloat((arr_start[3]/reviews?.length *100) ? (arr_start[3]/reviews?.length *100) : 0).toFixed(2)} />
+                    <div class=" w-full  rounded-full ">
+                      <ProgressBar
+                        customLabel={" "}
+                        completed={parseFloat(
+                          (arr_start[3] / reviews?.length) * 100
+                            ? (arr_start[3] / reviews?.length) * 100
+                            : 0
+                        ).toFixed(2)}
+                      />
                     </div>
                   </div>
-                  {parseFloat((arr_start[3]/reviews?.length *100) ? (arr_start[3]/reviews?.length *100) : 0).toFixed(2)+"%"}
+                  {parseFloat(
+                    (arr_start[3] / reviews?.length) * 100
+                      ? (arr_start[3] / reviews?.length) * 100
+                      : 0
+                  ).toFixed(2) + "%"}
                 </div>
                 <div className="flex items-center gap-3 ">
                   {" "}
                   5 <FaStar size={20} className=" text-yellow-400" />
                   <div className="w-full flex items-center justify-center">
-                  <div class=" w-full  rounded-full ">
-                    <ProgressBar customLabel={" "}  completed={parseFloat((arr_start[4]/reviews?.length *100) ? (arr_start[4]/reviews?.length *100) : 0).toFixed(2)} />
+                    <div class=" w-full  rounded-full ">
+                      <ProgressBar
+                        customLabel={" "}
+                        completed={parseFloat(
+                          (arr_start[4] / reviews?.length) * 100
+                            ? (arr_start[4] / reviews?.length) * 100
+                            : 0
+                        ).toFixed(2)}
+                      />
                     </div>
                   </div>
-                  {parseFloat((arr_start[4]/reviews?.length *100) ? (arr_start[4]/reviews?.length *100) : 0).toFixed(2) +"%"}
+                  {parseFloat(
+                    (arr_start[4] / reviews?.length) * 100
+                      ? (arr_start[4] / reviews?.length) * 100
+                      : 0
+                  ).toFixed(2) + "%"}
                 </div>
 
                 {/* {inventory_quantity} */}
@@ -246,11 +378,14 @@ function Reviews() {
                 <div>
                   <h3>
                     There are{" "}
-                    <span className="text-bold">{reviews?.length }</span> reviews
+                    <span className="text-bold">{reviews?.length}</span> reviews
                   </h3>
                 </div>
                 <div className="mt-4 flex items-center gap-5">
-                  {parseFloat(products?.start_number ?products?.start_number:0 ).toFixed(2)}/5{" "}
+                  {parseFloat(
+                    products?.start_number ? products?.start_number : 0
+                  ).toFixed(2)}
+                  /5{" "}
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((item) => {
                       return (
@@ -287,95 +422,173 @@ function Reviews() {
                 </div>
                 {showAddReview && (
                   <div className=" relative">
-                    <div className=" absolute top-0 left-0 w-[100%] h-[300px] border rounded-sm z-10  bg-slate-200  dark:bg-black p-3">
-                      <div class="max-w-sm mx-auto">
-                        <div class="mb-5">
-                          <label
-                            for="email"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                          >
-                            Your message
-                          </label>
-                          <input
-                            value={review.comment}
-                            onChange={(e) => {
-                              setReview({ ...review, comment: e.target.value });
-                            }}
-                            type="text"
-                            id="text"
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            required
-                          />
-                        </div>
-                        <div class="mb-5">
-                          <label
-                            for="password"
-                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                          >
-                            ImageUrl
-                          </label>
-                          <input
-                            value={review.imaUrlComemnt}
-                            onChange={(e) => {
-                              setReview({
-                                ...review,
-                                imaUrlComemnt: e.target.value,
-                              });
-                            }}
-                            type="text"
-                            id="password"
-                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            required
-                          />
-                        </div>
-                        <div class="mb-5 flex items-center gap-3  ">
-                          <label
-                            for="password"
-                            class="  block text-sm font-medium text-gray-900 dark:text-white"
-                          >
-                            Start for product :
-                          </label>
-                          <div className="flex gap-4">
-                            {[1, 2, 3, 4, 5].map((start, index) => {
-                              return (
-                                <div
-                                  onClick={() => {
-                                    setReview({
-                                      ...review,
-                                      start_number: start,
-                                    });
-                                  }}
-                                >
-                                  <FaStar
-                                    size={20}
-                                    className={` ${
-                                      start <= review.start_number
-                                        ? " text-yellow-400"
-                                        : ""
-                                    }  font-bold`}
-                                  />
-                                </div>
-                              );
-                            })}{" "}
-                          </div>
-                        </div>
+                    <div className="  top-0 left-0 w-[100%] h-[100%]  border rounded-sm z-5  bg-slate-200  dark:bg-black p-3">
+                      <div class="mx-auto border">
+                        <Formik
+                          initialValues={review}
+                          validationSchema={advancedSchema}
+                          enableReinitialize={true}
+                          onSubmit={onSubmit}
+                        >
+                          {({
+                            isSubmitting,
+                            values,
+                            errors,
+                            setFieldValue,
+                          }) => (
+                            <Form className=" w-full ">
+                              <div className=" grid sm:grid-cols-2 grid-cols-1  gap-4   w-full ">
+                                <CustomTextarea
+                                  label="coment"
+                                  type="text"
+                                  cols="20"
+                                  rows="7"
+                                  name="comment"
+                                  placeholder="Enter description"
+                                />
 
-                        <button
-                          onClick={() => {
-                            handleAddreview();
-                          }}
-                          class="me-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                        >
-                          Submit
-                        </button>
-                        <button
-                          onClick={() => {
-                            setshowAddReview(false);
-                          }}
-                          class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                        >
-                          Close
-                        </button>
+                                <div>
+                                  <CustomInputImage
+                                    label="Imageurl"
+                                    name="imaUrlComemnt"
+                                    type="file"
+                                    multiple="true"
+                                    placeholder="Enter imageurl"
+                                    accept="image/*"
+                                  />
+
+                                  <div className="mt-3 mb-5   flex gap-5 sm:gap-4 w-ful flex-wrap">
+                                    {values?.imaUrlComemnt?.length != 0 &&
+                                      values?.imaUrlComemnt?.map(
+                                        (image, index) => {
+                                          return (
+                                            <div
+                                              data-aos="flip-up"
+                                              ease-out
+                                              data-aos-once="true"
+                                              className="relative group   "
+                                            >
+                                              <img
+                                                className={`" ${
+                                                  errors?.imaUrlComemnt &&
+                                                  errors?.imaUrlComemnt[index]
+                                                    ? " border-2 border-red-500"
+                                                    : "border-2 border-green-500"
+                                                } h-[100px] w-[100px]  "  `}
+                                                src={URL.createObjectURL(image)}
+                                                alt="none"
+                                                srcset=""
+                                              />
+
+                                              <button
+                                                onClick={() => {
+                                                  const filterImage =
+                                                    values?.imaUrlComemnt.filter(
+                                                      (image, index_local) => {
+                                                        return (
+                                                          index != index_local
+                                                        );
+                                                      }
+                                                    );
+                                                  console.log(index);
+                                                  console.log(filterImage);
+                                                  return setFieldValue(
+                                                    "imaUrlComemnt",
+                                                    filterImage
+                                                  );
+                                                }}
+                                                type="button"
+                                                class=" group-hover:inline-block hidden absolute -top-2 -right-2  bg-slate-50 rounded-md p-1  items-center justify-center text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500"
+                                              >
+                                                <span class="sr-only">
+                                                  Close menu
+                                                </span>
+
+                                                <svg
+                                                  class="h-6 w-6"
+                                                  xmlns="http://www.w3.org/2000/svg"
+                                                  fill="none"
+                                                  viewBox="0 0 24 24"
+                                                  stroke="currentColor"
+                                                  aria-hidden="true"
+                                                >
+                                                  <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                  />
+                                                </svg>
+                                              </button>
+                                            </div>
+                                          );
+                                        }
+                                      )}
+                                    {values.imaUrlComemnt &&
+                                      values.imaUrlComemnt.name}
+                                  </div>
+                                </div>
+
+                                <div class="mb-5 flex items-center gap-3  ">
+                                  <label
+                                    for="password"
+                                    class="  block text-sm font-medium text-gray-900 dark:text-white"
+                                  >
+                                    Start for product :
+                                  </label>
+                                  <div className="flex gap-4">
+                                    {[1, 2, 3, 4, 5].map((start, index) => {
+                                      return (
+                                        <div
+                                          onClick={() => {
+                                            setFieldValue(
+                                              "start_number",
+                                              start
+                                            );
+                                            // setReview({
+                                            //   ...review,
+                                            //   start_number: start,
+                                            // });
+                                          }}
+                                        >
+                                          <FaStar
+                                            size={20}
+                                            className={` ${
+                                              start <= values?.start_number
+                                                ? " text-yellow-400"
+                                                : ""
+                                            }  font-bold`}
+                                          />
+                                        </div>
+                                      );
+                                    })}{" "}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <button
+                                    disabled={isSubmitting}
+                                    type="submit"
+                                    // onClick={() => {
+                                    //   handleAddreview();
+                                    // }}
+                                    class="me-3 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                  >
+                                    Submit
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setshowAddReview(false);
+                                    }}
+                                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              </div>
+                            </Form>
+                          )}
+                        </Formik>
                       </div>
                     </div>
                   </div>
@@ -399,10 +612,12 @@ function Reviews() {
                       </div>
 
                       <div className="flex gap-3 flex-wrap">
-                        <img
-                          className="w-[200px] h-[200px]"
-                          src={item?.imaUrlComemnt}
-                        />
+                        {Array.isArray(item?.imaUrlComemnt) &&
+                          item?.imaUrlComemnt?.map((item) => {
+                          return(
+                            <img className="w-[160px] h-[160px] border rounded" src={item} />
+                          )
+                          })}
                         {/* <img
                     className="w-[200px] h-[200px]"
                     src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcumO8Dvq_vv_B1u1tDha3BEXqKQb_ZRSEzg&usqp=CAU"
@@ -421,7 +636,7 @@ function Reviews() {
                               <FaStar
                                 size={20}
                                 className={` ${
-                                  index +1 <= item?.start_number
+                                  index + 1 <= item?.start_number
                                     ? " text-yellow-400"
                                     : ""
                                 }  font-bold`}
@@ -429,8 +644,9 @@ function Reviews() {
                             );
                           })}
                         </div>
+                       
 
-                        <div>2022-03-19</div>
+                        <div>2024-04-15</div>
                       </div>
 
                       <div>{item.comment}</div>

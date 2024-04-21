@@ -23,35 +23,32 @@ export const basicSchema = yup.object().shape({
 });
 
 export const advancedSchema = yup.object().shape({
-  title: yup
+  province: yup
     .string()
-    .min(3, "Username must be at least 3 characters long")
+    .min(1, "Province must be at least 3 characters long")
     .required("Required"),
-  price: yup
+    district: yup
+    .string()
+    .min(1, "Username must be at least 3 characters long")
+    .required("Required"),
+    ward: yup
+    .string()
+    .min(1, "Username must be at least 3 characters long")
+    .required("Required"),
+    phoneNumber: yup
     .number().typeError("That doesn't look like a  number")
     .min(0, "Username must be at least 3 characters long")
     .required("Required"),
-  inventory_quantity: yup
-    .number().typeError("That doesn't look like a  number")
-    .min(1, "Username must be at least 3 characters long")
-    .required("Required"),
-  imageUrl: yup.array().of(
-    yup.mixed()
-      .required('A file is requeued')
-      .test('fileSize', 'File exceeds the maximum supported size of 14 MB', (value) => {
-        console.log(value)
-        return value && value.size <= 1024 * 1024 * 14
-      })
-      .test('is-valid-type',
-        'Invalid file extension. Allow downloading only files in PNG, JPG, Webp  and Avif formats.', (value) => {
-          return isValidFileType(value && value?.name?.toLowerCase(), 'extensions')
-        })
-  ),
-  category: yup
+    name: yup
     .string()
     .min(3, "Username must be at least 3 characters long")
     .required("Required"),
-  description: yup
+ 
+    pincode: yup
+    .string()
+    .min(3, "Username must be at least 3 characters long")
+    .required("Required"),
+    pay: yup
     .string()
     .min(3, "Username must be at least 3 characters long")
     .required("Required"),

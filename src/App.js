@@ -28,7 +28,9 @@ import ProductDetail from "./pages/admin/page/product/ProductDetail";
 import UserDetail from "./pages/admin/page/user/UserDetail";
 import CategoryDetail from "./pages/admin/page/category/CategoryDetail";
 import OrderDetail from "./pages/admin/page/order/OrderDetail";
-import Chat from "./components/Chat/Chat";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+
+
 
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -46,6 +48,7 @@ export default function App() {
     AOS.refresh();
   }, []); 
   return (
+    <PayPalScriptProvider options={{ clientId: "AXSfB-xVvhHyOUxPWvcdS88jZ2_Y8194nj2U9nQdE-I72zbs7vI-I2WzviSlF51aGIlXTso1nj9-d4-w" }}> 
     <MyState>
       <ToastContainer icon={false} />
       <Router>
@@ -120,6 +123,7 @@ export default function App() {
         </Routes>
       </Router>
     </MyState>
+    </PayPalScriptProvider>
   );
 }
 export const ProtectedRoutes = ({ children }) => {

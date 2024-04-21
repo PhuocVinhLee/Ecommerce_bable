@@ -23,19 +23,8 @@ export const basicSchema = yup.object().shape({
 });
 
 export const advancedSchema = yup.object().shape({
-  title: yup
-    .string()
-    .min(3, "Username must be at least 3 characters long")
-    .required("Required"),
-  price: yup
-    .number().typeError("That doesn't look like a  number")
-    .min(0, "Username must be at least 3 characters long")
-    .required("Required"),
-  inventory_quantity: yup
-    .number().typeError("That doesn't look like a  number")
-    .min(1, "Username must be at least 3 characters long")
-    .required("Required"),
-  imageUrl: yup.array().of(
+ 
+  imaUrlComemnt: yup.array().of(
     yup.mixed()
       .required('A file is requeued')
       .test('fileSize', 'File exceeds the maximum supported size of 14 MB', (value) => {
@@ -47,11 +36,8 @@ export const advancedSchema = yup.object().shape({
           return isValidFileType(value && value?.name?.toLowerCase(), 'extensions')
         })
   ),
-  category: yup
-    .string()
-    .min(3, "Username must be at least 3 characters long")
-    .required("Required"),
-  description: yup
+ 
+  comment: yup
     .string()
     .min(3, "Username must be at least 3 characters long")
     .required("Required"),

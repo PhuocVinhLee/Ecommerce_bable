@@ -9,7 +9,7 @@ const CustomInput = ({ label,className, ...props }) => {
      
       <label class="block     text-sm font-bold mb-2" for="username">
       {label}
-      {meta.error}
+     
       </label>
      <div>
      <input

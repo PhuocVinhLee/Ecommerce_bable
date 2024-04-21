@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-
+import { useLocation } from "react-router-dom";
 import myContext from "../../../context/data/myContext";
 import { MdOutlineProductionQuantityLimits } from "react-icons/md";
 import { FaUser, FaCartPlus } from "react-icons/fa";
@@ -16,6 +16,7 @@ import {
 } from "react-router-dom";
 
 function Dashboarddiv() {
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const context = useContext(myContext);
   const {
@@ -42,6 +43,7 @@ function Dashboarddiv() {
     navigate("/addproduct");
   };
 
+
   const addCategory = () => {
     navigate("/addcategory");
   };
@@ -55,8 +57,8 @@ function Dashboarddiv() {
                 <Link
                   to={"productdetail"}
                   type="button"
-                  className=" flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
-                > 
+                  className= {`"  ${ pathname == "/dashboard/productdetail" ?  " border border-primary " : " "} flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
+  `}> 
                   <div className="flex gap-2 items-center">
                     <MdOutlineProductionQuantityLimits />
                     Products
@@ -67,8 +69,8 @@ function Dashboarddiv() {
               <Link
                   to={"categorydetail"}
                   type="button"
-                  className=" flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
-                >
+                  className= {`"  ${ pathname == "/dashboard/categorydetail" ?  " border border-primary " : " "} flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
+                  `}> 
                   <div className="flex gap-2 items-center">
                     <BiCategory /> CaTegory
                   </div>
@@ -78,8 +80,8 @@ function Dashboarddiv() {
               <Link
                   to={"orderdetail"}
                   type="button"
-                  className="  flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
-                >
+                  className= {`"  ${ pathname == "/dashboard/orderdetail" ?  " border border-primary " : " "} flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
+                  `}> 
                   <div className="flex gap-2 items-center">
                     <AiFillShopping /> Order
                   </div>
@@ -89,8 +91,8 @@ function Dashboarddiv() {
               <Link
                   to={"userdetail"}
                   type="button"
-                  className="  flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
-                >
+                  className= {`"  ${ pathname == "/dashboard/userdetail" ?  " border border-primary " : " "} flex font-medium border-b-2  dark:text-white dark:bg-gray-800  dark:hover:bg-primary bg-white hover:bg-primary text-black rounded-lg text-xl shadow-[inset_0_0_8px_rgba(0,0,0,0.6)]  px-5 py-1.5 text-center"
+                  `}> 
                   <div className="flex gap-2 items-center">
                     <FaUser /> Users
                   </div>
